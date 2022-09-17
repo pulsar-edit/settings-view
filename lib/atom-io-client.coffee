@@ -8,7 +8,7 @@ request = require 'request'
 module.exports =
 class AtomIoClient
   constructor: (@packageManager, @baseURL) ->
-    @baseURL ?= 'https://atom.io/api/'
+    @baseURL ?= '#{atom.branding.urlWeb}/api'
     # 12 hour expiry
     @expiry = 1000 * 60 * 60 * 12
     @createAvatarCache()
