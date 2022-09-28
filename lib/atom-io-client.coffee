@@ -8,7 +8,7 @@ request = require 'request'
 module.exports =
 class AtomIoClient
   constructor: (@packageManager, @baseURL) ->
-    @baseURL ?= 'https://api.pulsar-edit.dev/'
+    @baseURL ?= 'https://api.pulsar-edit.dev/api/'
     # 12 hour expiry
     @expiry = 1000 * 60 * 60 * 12
     @createAvatarCache()
