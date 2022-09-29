@@ -196,7 +196,7 @@ class AtomIoClient
     }
 
     new Promise (resolve, reject) =>
-      request options, (err, res, body) =>
+      request options, (err, res, textBody) =>
         if err
           error = new Error("Searching for \u201C#{query}\u201D failed.")
           error.stderr = err.message
@@ -205,15 +205,21 @@ class AtomIoClient
           try
             # NOTE: request's json option does not populate err if parsing fails,
             # so we do it manually
-            body = @parseJSON(body)
-            resolve(
-              body.filter (pkg) -> pkg.releases?.latest?
-                  .map ({readme, metadata, downloads, stargazers_count, repository}) ->
-                    Object.assign metadata, {readme, downloads, stargazers_count, repository: repository.url}
-            )
+            body = @parseJSON(textBody)
+            if body.filter
+              resolve(
+                body.filter (pkg) -> pkg.releases?.latest?
+                    .map ({readme, metadata, downloads, stargazers_count, repository}) ->
+                      Object.assign metadata, {readme, downloads, stargazers_count, repository: repository.url}
+              )
+            else
+            error = new Error("Searching for \u201C#{query}\u201D failed.\n")
+            error.stderr = "API returned: " + textBody
+            reject error
+
           catch e
             error = new Error("Searching for \u201C#{query}\u201D failed.")
-            error.stderr = e.message + '\n' + body
+            error.stderr = e.message + '\n' + textBody
             reject error
 
   parseJSON: (s) ->
