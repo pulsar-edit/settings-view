@@ -90,7 +90,6 @@ describe "PackageCard", ->
 
       expect(card.refs.installButtonGroup).toBeVisible()
       expect(card.refs.updateButtonGroup).not.toBeVisible()
-      expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
       expect(card.refs.packageActionButtonGroup).not.toBeVisible()
 
     it "can be installed if currently not installed", ->
@@ -342,7 +341,6 @@ describe "PackageCard", ->
         expect(card.refs.installButtonGroup).toBeVisible()
         expect(card.refs.updateButtonGroup).not.toBeVisible()
         expect(card.refs.packageActionButtonGroup).not.toBeVisible()
-        expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
 
     it "shows the settings, uninstall, and enable buttons when disabled", ->
       atom.config.set('package-with-config.setting', 'something')
@@ -353,7 +351,6 @@ describe "PackageCard", ->
 
       expect(card.refs.updateButtonGroup).not.toBeVisible()
       expect(card.refs.installButtonGroup).not.toBeVisible()
-      expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
 
       expect(card.refs.settingsButton).toBeVisible()
       expect(card.refs.uninstallButton).toBeVisible()
@@ -370,7 +367,6 @@ describe "PackageCard", ->
 
       expect(card.refs.updateButtonGroup).not.toBeVisible()
       expect(card.refs.installButtonGroup).not.toBeVisible()
-      expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
 
       expect(card.refs.settingsButton).toBeVisible()
       expect(card.refs.uninstallButton).toBeVisible()
@@ -393,9 +389,6 @@ describe "PackageCard", ->
   ###
   hasDeprecations, no update: disabled-settings, uninstall, disable
   hasDeprecations, has update: update, disabled-settings, uninstall, disable
-  hasAlternative; core: uninstall
-  hasAlternative; package, alt not installed: install new-package
-  hasAlternative; package, alt installed: uninstall
   ###
   describe "when the package has deprecations", ->
     beforeEach ->
@@ -424,7 +417,6 @@ describe "PackageCard", ->
         card.updateInterfaceState()
         expect(card.refs.updateButtonGroup).not.toBeVisible()
         expect(card.refs.installButtonGroup).not.toBeVisible()
-        expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
 
         expect(card.element).toHaveClass 'deprecated'
         expect(card.refs.packageMessage.textContent).toContain 'no update available'
@@ -440,7 +432,6 @@ describe "PackageCard", ->
         card.updateInterfaceState()
         expect(card.refs.updateButtonGroup).not.toBeVisible()
         expect(card.refs.installButtonGroup).not.toBeVisible()
-        expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
 
         expect(card.element).toHaveClass 'deprecated'
         expect(card.refs.packageMessage.textContent).toContain 'no update available'
@@ -480,7 +471,6 @@ describe "PackageCard", ->
           expect(card.refs.updateButtonGroup).toBeVisible()
           expect(card.refs.installButtonGroup).not.toBeVisible()
           expect(card.refs.packageActionButtonGroup).toBeVisible()
-          expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
           expect(card.refs.uninstallButton).toBeVisible()
           expect(card.refs.enablementButton).toBeVisible()
           expect(card.refs.enablementButton.textContent).toBe 'Disable'
@@ -517,7 +507,6 @@ describe "PackageCard", ->
 
           expect(card.refs.updateButtonGroup).toBeVisible()
           expect(card.refs.installButtonGroup).not.toBeVisible()
-          expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
 
           updateCallback(0, '', '')
 
@@ -529,7 +518,6 @@ describe "PackageCard", ->
             expect(card.refs.updateButtonGroup).not.toBeVisible()
             expect(card.refs.installButtonGroup).not.toBeVisible()
             expect(card.refs.packageActionButtonGroup).toBeVisible()
-            expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
             expect(card.refs.versionValue.textContent).toBe '1.0.0' # Does not update until restart
 
             notifications = atom.notifications.getNotifications()
@@ -573,122 +561,3 @@ describe "PackageCard", ->
             notifications = atom.notifications.getNotifications()
             expect(notifications.length).toBe 1
             expect(notifications[0].options.detail).toBe "cf23df22 -> a296114f"
-
-    describe "when hasAlternative is true and alternative is core", ->
-      beforeEach ->
-        spyOn(atom.packages, 'isDeprecatedPackage').andReturn true
-        spyOn(atom.packages, 'isPackageLoaded').andReturn false
-        spyOn(atom.packages, 'isPackageDisabled').andReturn false
-        spyOn(atom.packages, 'getAvailablePackageNames').andReturn(['package-with-config'])
-        spyOn(PackageCard::, 'getDeprecatedPackageMetadata').andReturn
-          hasAlternative: true
-          alternative: 'core'
-        pack = atom.packages.getLoadedPackage('package-with-config')
-        card = new PackageCard(pack, new SettingsView(), packageManager)
-        jasmine.attachToDOM(card.element)
-
-      it "notifies that the package has been replaced, shows uninstallButton", ->
-        expect(card.refs.updateButtonGroup).not.toBeVisible()
-        expect(card.refs.installButtonGroup).not.toBeVisible()
-        expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
-
-        expect(card.element).toHaveClass 'deprecated'
-        expect(card.refs.packageMessage.textContent).toContain 'have been added to core'
-        expect(card.refs.packageMessage).toHaveClass 'text-warning'
-        expect(card.refs.settingsButton).not.toBeVisible()
-        expect(card.refs.uninstallButton).toBeVisible()
-        expect(card.refs.enablementButton).not.toBeVisible()
-
-    describe "when hasAlternative is true and alternative is a package that has not been installed", ->
-      beforeEach ->
-        spyOn(PackageCard::, 'isDeprecated').andReturn true
-        spyOn(PackageCard::, 'getDeprecatedPackageMetadata').andReturn
-          hasAlternative: true
-          alternative: 'not-installed-package'
-        pack = atom.packages.getLoadedPackage('package-with-config')
-        card = new PackageCard(pack, new SettingsView(), packageManager)
-        jasmine.attachToDOM(card.element)
-
-      it "shows installAlternativeButton and uninstallButton", ->
-        expect(card.refs.updateButtonGroup).not.toBeVisible()
-        expect(card.refs.installButtonGroup).not.toBeVisible()
-        expect(card.refs.installAlternativeButtonGroup).toBeVisible()
-
-        expect(card.refs.packageActionButtonGroup).toBeVisible()
-        expect(card.refs.settingsButton).not.toBeVisible()
-        expect(card.refs.uninstallButton).toBeVisible()
-        expect(card.refs.enablementButton).not.toBeVisible()
-
-        expect(card.element).toHaveClass 'deprecated'
-        expect(card.refs.packageMessage.textContent).toContain 'has been replaced by not-installed-package'
-        expect(card.refs.packageMessage).toHaveClass 'text-warning'
-
-      it "uninstalls the old package, and installs the new when the install alternative button is clicked", ->
-        [installCallback, uninstallCallback] = []
-        packageManager.runCommand.andCallFake (args, callback) ->
-          if args[0] is 'install'
-            installCallback = callback
-          else if args[0] is 'uninstall'
-            uninstallCallback = callback
-          onWillThrowError: ->
-
-        spyOn(packageManager, 'install').andCallThrough()
-        spyOn(packageManager, 'uninstall').andCallThrough()
-        spyOn(atom.packages, 'activatePackage')
-
-        card.refs.installAlternativeButton.click()
-
-        expect(card.refs.installAlternativeButton.disabled).toBe(true)
-        expect(card.refs.installAlternativeButton).toHaveClass('is-installing')
-
-        expect(packageManager.uninstall).toHaveBeenCalled()
-        expect(packageManager.uninstall.mostRecentCall.args[0].name).toEqual('package-with-config')
-
-        expect(packageManager.install).toHaveBeenCalled()
-        expect(packageManager.install.mostRecentCall.args[0]).toEqual({name: 'not-installed-package'})
-
-        uninstallCallback(0, '', '')
-
-        waits 1
-        runs ->
-          expect(card.refs.installAlternativeButton.disabled).toBe(true)
-          expect(card.refs.installAlternativeButton).toHaveClass('is-installing')
-          installCallback(0, '', '')
-
-        waits 1
-        runs ->
-          expect(card.refs.installAlternativeButton.disabled).toBe(false)
-          expect(card.refs.installAlternativeButton).not.toHaveClass('is-installing')
-          expect(card.refs.updateButtonGroup).not.toBeVisible()
-          expect(card.refs.installButtonGroup).not.toBeVisible()
-          expect(card.refs.packageActionButtonGroup).not.toBeVisible()
-          expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
-
-    describe "when hasAlternative is true and alternative is an installed package", ->
-      beforeEach ->
-        atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'language-test'))
-        waitsFor ->
-          atom.packages.isPackageLoaded('language-test') is true
-
-        runs ->
-          spyOn(PackageCard::, 'isDeprecated').andReturn true
-          spyOn(PackageCard::, 'getDeprecatedPackageMetadata').andReturn
-            hasAlternative: true
-            alternative: 'language-test'
-          pack = atom.packages.getLoadedPackage('package-with-config')
-          card = new PackageCard(pack, new SettingsView(), packageManager)
-          jasmine.attachToDOM(card.element)
-
-      it "notifies that the package has been replaced, shows uninstallButton", ->
-        expect(card.refs.updateButtonGroup).not.toBeVisible()
-        expect(card.refs.installButtonGroup).not.toBeVisible()
-        expect(card.refs.installAlternativeButtonGroup).not.toBeVisible()
-
-        expect(card.element).toHaveClass 'deprecated'
-        expect(card.refs.packageMessage.textContent).toContain 'has been replaced by language-test'
-        expect(card.refs.packageMessage.textContent).toContain 'already installed'
-        expect(card.refs.packageMessage.textContent).toContain 'Please uninstall'
-        expect(card.refs.packageMessage).toHaveClass 'text-warning'
-        expect(card.refs.settingsButton).not.toBeVisible()
-        expect(card.refs.uninstallButton).toBeVisible()
-        expect(card.refs.enablementButton).not.toBeVisible()

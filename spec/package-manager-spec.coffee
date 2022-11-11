@@ -150,59 +150,6 @@ describe "PackageManager", ->
       runCallback(0, '', '')
       expect(atom.config.get('core.disabledPackages')).not.toContain('something')
 
-  describe "::installAlternative", ->
-    beforeEach ->
-      spyOn(atom.packages, 'activatePackage')
-      spyOn(packageManager, 'runCommand').andCallFake ->
-        onWillThrowError: ->
-      atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'language-test'))
-      waitsFor ->
-        atom.packages.isPackageLoaded('language-test') is true
-
-    it "installs the latest version when a package version is not specified", ->
-      installedCallback = jasmine.createSpy()
-      installingEvent = jasmine.createSpy()
-      installedEvent = jasmine.createSpy()
-
-      eventArg =
-        alternative: 'a-new-package'
-        pack:
-          name: 'language-test'
-
-      packageManager.on 'package-installing-alternative', installingEvent
-      packageManager.on 'package-installed-alternative', installedEvent
-
-      packageManager.installAlternative({name: 'language-test'}, 'a-new-package', installedCallback)
-      expect(packageManager.runCommand).toHaveBeenCalled()
-      expect(packageManager.runCommand.calls[0].args[0]).toEqual(['uninstall', '--hard', 'language-test'])
-      expect(packageManager.runCommand.calls[1].args[0]).toEqual(['install', 'a-new-package', '--json'])
-      expect(atom.packages.isPackageLoaded('language-test')).toBe true
-
-      expect(installedEvent).not.toHaveBeenCalled()
-      expect(installingEvent).toHaveBeenCalled()
-      expect(installingEvent.mostRecentCall.args[0]).toEqual eventArg
-
-      packageManager.runCommand.calls[0].args[1](0, '', '')
-
-      waits 1
-      runs ->
-        expect(atom.packages.activatePackage).not.toHaveBeenCalled()
-        expect(atom.packages.isPackageLoaded('language-test')).toBe false
-
-        packageManager.runCommand.calls[1].args[1](0, '', '')
-
-      waits 1
-      runs ->
-        expect(atom.packages.activatePackage).toHaveBeenCalledWith 'a-new-package'
-        expect(atom.packages.isPackageLoaded('language-test')).toBe false
-
-        expect(installedEvent).toHaveBeenCalled()
-        expect(installedEvent.mostRecentCall.args[0]).toEqual eventArg
-
-        expect(installedCallback).toHaveBeenCalled()
-        expect(installedCallback.mostRecentCall.args[0]).toEqual null
-        expect(installedCallback.mostRecentCall.args[1]).toEqual eventArg
-
   describe "::packageHasSettings", ->
     it "returns true when the pacakge has config", ->
       atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'package-with-config'))

@@ -361,27 +361,6 @@ class PackageManager
 
     handleProcessErrors(apmProcess, errorMessage, onError)
 
-  installAlternative: (pack, alternativePackageName, callback) ->
-    eventArg = {pack, alternative: alternativePackageName}
-    @emitter.emit('package-installing-alternative', eventArg)
-
-    uninstallPromise = new Promise (resolve, reject) =>
-      @uninstall pack, (error) ->
-        if error then reject(error) else resolve()
-
-    installPromise = new Promise (resolve, reject) =>
-      @install {name: alternativePackageName}, (error) ->
-        if error then reject(error) else resolve()
-
-    Promise.all([uninstallPromise, installPromise]).then =>
-      callback(null, eventArg)
-      @emitter.emit('package-installed-alternative', eventArg)
-    .catch (error) =>
-      console.error error.message, error.stack
-      callback(error, eventArg)
-      eventArg.error = error
-      @emitter.emit('package-install-alternative-failed', eventArg)
-
   canUpgrade: (installedPackage, availableVersion) ->
     return false unless installedPackage?
 
